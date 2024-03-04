@@ -1,0 +1,44 @@
+#!/bin/bash
+rm -f value.txt
+variable1=1
+b=$(alluxio fsadmin report | grep Workers | grep Lost);
+
+alluxio fsadmin report capacity -lost | grep .net | awk '{ print $1, $2}' >> value.txt
+wait
+a=$(cat value.txt | grep .net |wc -l);
+if (( $a >= $variable1 ));
+ then
+rm -f /tmp/status.txt
+rm -f /tmp/status2.txt
+
+echo "<p style="font-size:15px">Hello All, </p>" >> /tmp/status.txt
+echo "<p style="font-size:15px">Please check the below unreachable workers and start the services! </p>" >>/tmp/status.txt
+echo "<p style="font-size:15px">Refer: <documant link> </p>" >>/tmp/status.txt  # updtate document link
+echo "<p style="font-size:15px">$b </p>" >>/tmp/status.txt
+echo "<!DOCTYPE html>" >>/tmp/status.txt
+echo "<html>" >>/tmp/status.txt
+  echo "<head>" >>/tmp/status.txt
+  echo "</head>" >>/tmp/status.txt
+  echo "<body>" >>/tmp/status.txt
+    echo "<table border="1">" >>/tmp/status.txt
+      echo "<tr>" >>/tmp/status.txt
+        echo "<th>Worker Name</th>" >>/tmp/status.txt
+        echo "<th>Last Heartbeat</th>" >>/tmp/status.txt
+      echo "</tr>" >>/tmp/status.txt
+      echo "<tr>" >>/tmp/status.txt
+sh /home/kkarth438/table.sh < value.txt >> /tmp/status.txt
+      echo "</tr>" >>/tmp/status.txt
+    echo "</table>" >>/tmp/status.txt
+  echo "</body>" >>/tmp/status.txt
+echo "</html>" >>/tmp/status.txt
+cat <<'EOF' - /tmp/status.txt | /usr/sbin/sendmail -t
+From: abc@gmail.com
+To: user1@gmail.com
+Cc: user2@gmail.com, user3@gmail.com, user4@gmail.com
+Subject: Alluxio Prod Workers unreachable
+Content-Type: text/html
+EOF
+echo "$a worker unrachable"
+else
+   echo "All the workers are good!"
+fi
